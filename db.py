@@ -36,21 +36,21 @@ def db_read_all_chapter(novel):
     cursor = conn.cursor()
     for row in cursor.execute("SELECT * FROM tbl_chapter WHERE novel_id=?", [novel.id]):
         print(row)
-
-# db_read_all_novel()
-
-n = Novel(title="Abc", description="def", author="xxx", genre="xxx")
-db_add_novel(n)
-db_read_all_novel()
-
-c = Chapter(n.id, "Chuong 1", 1, "xxx")
-db_add_chapter(c)
-
-
-c = Chapter(n.id, "Chuong 2", 2, "yyy")
-db_add_chapter(c)
-
 #
-# db_read_all_chapter(n)
-
-db_read_all_novel()
+# # db_read_all_novel()
+#
+# n = Novel(title="Abc", description="def", author="xxx", genre="xxx")
+# db_add_novel(n)
+# db_read_all_novel()
+#
+# c = Chapter(n.id, "Chuong 1", 1, "xxx")
+# db_add_chapter(c)
+#
+#
+# c = Chapter(n.id, "Chuong 2", 2, "yyy")
+# db_add_chapter(c)
+#
+# #
+# # db_read_all_chapter(n)
+#
+# db_read_all_novel()
