@@ -1,8 +1,75 @@
-from html_processor import *
-from db import *
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+import re
 
-novels = fetch_all_novel("http://www.truyenngan.com.vn/truyen-ngan.html")
-db_add_novel_list(novels)
+url = "http://600tuvungtoeic.com/"
+
+def fetch_topics():
+    html = urlopen(url).read().decode("utf-8")
+    soup = BeautifulSoup(html, 'html.parser')
+    div_topics = soup.find_all('div', "gallery-item")
+
+    contents = [
+        {
+            'title': div_topic.find('div', 'content-gallery').h3.string,
+            'img': div_topic.img,
+            'a': div_topic.find('div', 'overlay').a
+        }
+        for div_topic in div_topics
+    ]
+
+    topics = [
+        {
+            "name": content['title'].split('-')[1].strip(),
+            "no": int(content['title'].split('-')[0].strip()),
+            "url": url + "/" + content['a']['href'],
+            'image_url': content['img']['src'],
+        }
+        for content in contents
+    ]
+
+    return topics
+
+def fetch_words(topic):
+    html = urlopen(topic['url']).read().decode("utf-8")
+    soup = BeautifulSoup(html, 'html.parser')
+    div_tuvungs = soup.find_all('div', 'tuvung')
+    contents = [
+        {
+            'span_origin': div_tuvung.find('div', 'noidung').find_all('span')[0],
+            'span_pronun': div_tuvung.find('div', 'noidung').find_all('span')[1],
+            'example_translation': div_tuvung.find('div', 'noidung').find('b'),
+            'image': div_tuvung.find('img'),
+            'audio': div_tuvung.find('audio'),
+            'bundle': [str(content) for content in div_tuvung.find('div', 'noidung').contents if (content is not None) and str(content).strip() != ""]
+        }
+        for div_tuvung in div_tuvungs
+    ]
+
+    words = [
+        {
+            'word': content['span_origin'].string,
+            'explanation': content['bundle'][4],
+            'pronunciation': content['span_pronun'].string,
+            'type': content['bundle'][7],
+            'image_url': content['image']['src'],
+            'audio_url': url + content['audio'].source['src'],
+            'example': content['bundle'][10],
+            'example_translation': content['example_translation'].string
+        }
+        for content in contents
+    ]
+
+    return words
+
+if __name__ == "__main__":
+    topics = (fetch_topics())
+    words = fetch_words(topics[0])
+    import json
+    print(json.dumps(words[0], indent=4, ensure_ascii=False))
+
+##novels = fetch_all_novel("http://www.truyenngan.com.vn/truyen-ngan.html")
+##db_add_novel_list(novels)
 #
 # def save_a_novel(novel_info):
 #     novel_url = novel_info["novel_url"]

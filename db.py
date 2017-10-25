@@ -2,18 +2,28 @@ import sqlite3
 from models.novel import Novel
 from models.chapter import Chapter
 
-conn = sqlite3.connect("novel.db")
+conn = sqlite3.connect("toeic.db")
 
 
-def db_read_all_novel():
+def db_add_topic(topic):
     cursor = conn.cursor()
-    for row in cursor.execute("SELECT * FROM tbl_story"):
-        print(row)
-        print("-------------------------------------------")
-        novel = Novel.from_row(row)
-        db_read_all_chapter(novel)
-        print("-------------------------------------------")
+    insert_params = [topic["name"], topic["no"], topic["image_url"]]
+    cursor.execute("INSERT INTO tbl_topic (name, no, image_url) VALUES (?, ?, ?)", insert_params)
+
+    conn.commit()
+    topic['id'] = cursor.lastrowid
     cursor.close()
+
+
+def db_add_word(word):
+    cursor = conn.cursor()
+    insert_params = [word["origin"], word["explanation"], word["example"], word["image_url"], word['topic_id']]
+    cursor.execute("INSERT INTO tbl_word (origin, explanation, example, image_url, topic_id) VALUES(?, ?, ?, ?, ?)"),
+                    insert_params)
+    conn.commit()
+    word["id"] = cursor.lastrowid
+    cursor.close()
+
 
 def db_add_novel(novel):
     cursor = conn.cursor()
@@ -24,26 +34,26 @@ def db_add_novel(novel):
     cursor.close()
 
 
-def db_add_chapter(chapter):
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO tbl_chapter (novel_id, title, no, content) VALUES (?,?,?,?)",
-                   chapter.get_insert_params())
-    chapter.id = cursor.lastrowid
-    conn.commit()
-    cursor.close()
-
-
-def db_read_all_chapter(novel):
-    cursor = conn.cursor()
-    for row in cursor.execute("SELECT * FROM tbl_chapter WHERE novel_id=?", [novel.id]):
-        print(row)
-
-def db_add_novel_list(novel_list):
-    for novel in novel_list:
-        db_add_novel(novel)
-        for chapter in novel.chapters:
-            chapter.novel_id = novel.id
-            db_add_chapter(chapter)
+# def db_add_chapter(chapter):
+#     cursor = conn.cursor()
+#     cursor.execute("INSERT INTO tbl_chapter (novel_id, title, no, content) VALUES (?,?,?,?)",
+#                    chapter.get_insert_params())
+#     chapter.id = cursor.lastrowid
+#     conn.commit()
+#     cursor.close()
+#
+#
+# def db_read_all_chapter(novel):
+#     cursor = conn.cursor()
+#     for row in cursor.execute("SELECT * FROM tbl_chapter WHERE novel_id=?", [novel.id]):
+#         print(row)
+#
+# def db_add_novel_list(novel_list):
+#     for novel in novel_list:
+#         db_add_novel(novel)
+#         for chapter in novel.chapters:
+#             chapter.novel_id = novel.id
+#             db_add_chapter(chapter)
 #
 #db_read_all_novel()
 #
