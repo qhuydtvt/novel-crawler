@@ -2,7 +2,7 @@ import sqlite3
 from models.novel import Novel
 from models.chapter import Chapter
 
-conn = sqlite3.connect("toeic.db")
+conn = sqlite3.connect("toeic_600.db")
 
 
 def db_add_topic(topic):
@@ -17,8 +17,17 @@ def db_add_topic(topic):
 
 def db_add_word(word):
     cursor = conn.cursor()
-    insert_params = [word["origin"], word["explanation"], word["example"], word["image_url"], word['topic_id']]
-    cursor.execute("INSERT INTO tbl_word (origin, explanation, example, image_url, topic_id) VALUES(?, ?, ?, ?, ?)"),
+    insert_params = [
+        word["origin"],
+        word["explanation"],
+        word['type'],
+        word['pronunciation'],
+        word['image_url'],
+        word["example"],
+        word['example_translation'],
+        word['topic_id']
+    ]
+    cursor.execute("INSERT INTO tbl_word (origin, explanation, type, pronunciation, image_url, example, example_translation, topic_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                     insert_params)
     conn.commit()
     word["id"] = cursor.lastrowid

@@ -72,7 +72,7 @@ if __name__ == "__main__":
             db_add_topic(topic)
             words = fetch_words(topic)
             for word in words:
-                print('Adding word', word[''])
+                print('Adding word', word['origin'])
                 word['topic'] = topic['name']
                 word['topic_id'] = topic['id']
                 db_add_word(word)
