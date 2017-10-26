@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+from db import db_add_topic, db_add_word
 import re
 
 url = "http://600tuvungtoeic.com/"
@@ -31,16 +32,17 @@ def fetch_topics():
     return topics
 
 def fetch_words(topic):
-    html = urlopen(topic['url']).read().decode("utf-8")
+    html = urlopen(topic['url']).read().decode("utf-8").replace('<hr>', '')
     soup = BeautifulSoup(html, 'html.parser')
     div_tuvungs = soup.find_all('div', 'tuvung')
+
     contents = [
         {
+            'div': div_tuvung,
             'span_origin': div_tuvung.find('div', 'noidung').find_all('span')[0],
             'span_pronun': div_tuvung.find('div', 'noidung').find_all('span')[1],
             'example_translation': div_tuvung.find('div', 'noidung').find('b'),
             'image': div_tuvung.find('img'),
-            'audio': div_tuvung.find('audio'),
             'bundle': [str(content) for content in div_tuvung.find('div', 'noidung').contents if (content is not None) and str(content).strip() != ""]
         }
         for div_tuvung in div_tuvungs
@@ -48,14 +50,14 @@ def fetch_words(topic):
 
     words = [
         {
-            'word': content['span_origin'].string,
+            'origin': content['span_origin'].string,
             'explanation': content['bundle'][4],
             'pronunciation': content['span_pronun'].string,
             'type': content['bundle'][7],
             'image_url': content['image']['src'],
-            'audio_url': url + content['audio'].source['src'],
+            'audio_url': url + BeautifulSoup(contents[0]['bundle'][-1], 'html.parser').find('source')['src'],
             'example': content['bundle'][10],
-            'example_translation': content['example_translation'].string
+            'example_translation': content['example_translation'].string if content["example_translation"] is not None else ""
         }
         for content in contents
     ]
@@ -63,10 +65,18 @@ def fetch_words(topic):
     return words
 
 if __name__ == "__main__":
-    topics = (fetch_topics())
-    words = fetch_words(topics[0])
-    import json
-    print(json.dumps(words[0], indent=4, ensure_ascii=False))
+    topics = fetch_topics()
+    with open('words.json', 'w') as f:
+        for topic in topics:
+            print("Adding topic", topic['name'])
+            db_add_topic(topic)
+            words = fetch_words(topic)
+            for word in words:
+                print('Adding word', word[''])
+                word['topic'] = topic['name']
+                word['topic_id'] = topic['id']
+                db_add_word(word)
+
 
 ##novels = fetch_all_novel("http://www.truyenngan.com.vn/truyen-ngan.html")
 ##db_add_novel_list(novels)
